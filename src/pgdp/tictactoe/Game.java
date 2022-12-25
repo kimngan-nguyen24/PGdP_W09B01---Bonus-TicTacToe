@@ -25,6 +25,10 @@ public class Game {
     /**
      * playGame() trägt das Spiel zwischen den beiden KIs aus und wird dabei garantiert nur einmal pro Game-Objekt aufgerufen.
      * Methode makeMove() gibt ein Move(int x, int y, int value) zurück.
+     * Gewinnen wenn: eine Reihe, Spalte oder Diagonale hat
+     * Verlieren wenn: 1. falscher Zug,
+     *      2. Sollte ein Spieler noch Spielsteine haben, allerdings diese nicht mehr legen können, hat er verloren.
+     * Unentschieden: wenn beide Spieler all ihre Spielsteine gelegt haben und es keinen Gewinner gibt.
      */
     public void playGame() {
         if (played) return;
@@ -33,44 +37,49 @@ public class Game {
         boolean[] firstPlayedPieces = new boolean[9];
         boolean[] secondPlayedPieces = new boolean[9];
         boolean firstPlayerTurn = true;
-        int count = 0; // count <= 9*2
-        PenguAI player1; PenguAI player2;
-        boolean[] player1Pieces; boolean[] player2Pieces;
+        int count = 0; // count <= 18
+        int countOfFields = 0;
+        PenguAI player; PenguAI otherPlayer;
+        boolean[] playerPieces;
         do {
             if (firstPlayerTurn) {
-                player1 = firstPlayer; player2 = secondPlayer;
-                player1Pieces = firstPlayedPieces;
+                // check if firstPlayer can continue to play
+                player = firstPlayer; otherPlayer = secondPlayer;
+                playerPieces = firstPlayedPieces;
             }
             else {
-                player1 = secondPlayer; player2 = firstPlayer;
-                player1Pieces = secondPlayedPieces;
+                player = secondPlayer; otherPlayer = firstPlayer;
+                playerPieces = secondPlayedPieces;
             }
 
-            /**
-             * player1 is the one doing the move
-             */
-            Move move = player1.makeMove(board, firstPlayerTurn, firstPlayedPieces, secondPlayedPieces);
+            if (countOfFields == 9 && !canMove(board, firstPlayerTurn, playerPieces)) {
+                winner = otherPlayer; return;
+            }
+
+            // player is the one doing the move
+            Move move = player.makeMove(board, firstPlayerTurn, firstPlayedPieces, secondPlayedPieces);
             int x = move.x(); int y = move.y(); int value = move.value();
 
             // check verbotener, falscher oder ungültiger Zug
-            if (x < 0 || x > 8 || y < 0 || y > 8 || value < 0 || value > 8) {winner = player2; return;}
-            if (player1Pieces[value]) {winner = player2; return;} // Der Player hat diesen Stein schon gespielt.
+            if (x < 0 || x > 8 || y < 0 || y > 8 || value < 0 || value > 8) {winner = otherPlayer; return;}
+            if (playerPieces[value]) {winner = otherPlayer; return;} // Der Player hat diesen Stein schon gespielt.
             if (board[x][y] != null) { // Das Feld ist schon belegt
                 if (board[x][y].firstPlayer() == firstPlayerTurn || board[x][y].value() >= value) {
-                    winner = player2; return;
+                    winner = otherPlayer; return;
                 }
             }
             //*****
-
-            board[x][y] = new Field(value, firstPlayerTurn);
-            player1Pieces[value] = true;
-            if (check(board, firstPlayerTurn, x, y)) {
-                winner = player1; return;
+            else { // board[x][y] = null
+                countOfFields++;
             }
-            firstPlayerTurn = !firstPlayerTurn;
+            board[x][y] = new Field(value, firstPlayerTurn);
+            playerPieces[value] = true;
+            if (check(board, firstPlayerTurn, x, y)) {
+                winner = player; return;
+            }
             count++;
-        } while (count <= 18);
-        // wenn count == 18, d.h. das beide Spieler all ihre Spielsteine gelegt haben und es keinen Gewinner gibt.
+            firstPlayerTurn = !firstPlayerTurn;
+        } while (count < 18); // break wenn count == 18
     }
 
     /**
@@ -96,6 +105,29 @@ public class Game {
             if ((board[0][2] != null && board[0][2].firstPlayer() == firstPlayer)
                     && (board[1][1] != null && board[1][1].firstPlayer() == firstPlayer)
                     && (board[2][0] != null && board[2][0].firstPlayer() == firstPlayer)) return true;
+        }
+        return false;
+    }
+
+    /**
+     * kann sich nicht mehr bewegen, wenn kein Feld mehr frei ist (hat sicher bei der aufrufenden Methode festgestellt),
+     * und hat keinen größeren Stein als Spielsteinen des Gegners
+     * @param board Field[][]
+     * @param firstPlayer boolean
+     * @param pieces array
+     * @return boolean
+     */
+    private boolean canMove (Field[][] board, boolean firstPlayer, boolean[] pieces) {
+        int max = 0;
+        for (int i = 8; i >= 0; i--) {
+            if (!pieces[i]) {
+                max = i; break;
+            }
+        }
+        for (int y = 0; y < 3; y++) {
+            for (int x = 0; x < 3; x++) {
+                if (board[x][y].firstPlayer() != firstPlayer && board[x][y].value() < max) return true;
+            }
         }
         return false;
     }
