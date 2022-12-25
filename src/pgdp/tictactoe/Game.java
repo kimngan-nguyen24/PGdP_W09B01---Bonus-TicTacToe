@@ -39,17 +39,17 @@ public class Game {
         do {
             if (firstPlayerTurn) {
                 player1 = firstPlayer; player2 = secondPlayer;
-                player1Pieces = firstPlayedPieces; player2Pieces = secondPlayedPieces;
+                player1Pieces = firstPlayedPieces;
             }
             else {
                 player1 = secondPlayer; player2 = firstPlayer;
-                player1Pieces = secondPlayedPieces; player2Pieces = firstPlayedPieces;
+                player1Pieces = secondPlayedPieces;
             }
 
             /**
              * player1 is the one doing the move
              */
-            Move move = player1.makeMove(board, firstPlayerTurn, player1Pieces, player2Pieces);
+            Move move = player1.makeMove(board, firstPlayerTurn, firstPlayedPieces, secondPlayedPieces);
             int x = move.x(); int y = move.y(); int value = move.value();
 
             // check verbotener, falscher oder ungültiger Zug
@@ -131,5 +131,6 @@ public class Game {
         } else {
             System.out.println("Unentschieden");
         }
+        game.playGame();
     }
 }
