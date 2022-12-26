@@ -1,6 +1,7 @@
 package pgdp.tictactoe;
 
 import pgdp.tictactoe.ai.HumanPlayer;
+import pgdp.tictactoe.ai.SimpleAI;
 
 public class Game {
     private final PenguAI firstPlayer;
@@ -40,19 +41,20 @@ public class Game {
         int count = 0; // count <= 18
         int countOfFields = 0;
         PenguAI player; PenguAI otherPlayer;
-        boolean[] playerPieces;
+        boolean[] playedPieces;
         do {
             if (firstPlayerTurn) {
                 // check if firstPlayer can continue to play
                 player = firstPlayer; otherPlayer = secondPlayer;
-                playerPieces = firstPlayedPieces;
+                playedPieces = firstPlayedPieces;
             }
             else {
                 player = secondPlayer; otherPlayer = firstPlayer;
-                playerPieces = secondPlayedPieces;
+                playedPieces = secondPlayedPieces;
             }
 
-            if (countOfFields == 9 && !canMove(board, firstPlayerTurn, playerPieces)) {
+            // check if the player can continue to move
+            if (countOfFields == 9 && !canMove(board, firstPlayerTurn, playedPieces)) {
                 winner = otherPlayer; return;
             }
 
@@ -62,18 +64,18 @@ public class Game {
 
             // check verbotener, falscher oder ungültiger Zug
             if (x < 0 || x > 8 || y < 0 || y > 8 || value < 0 || value > 8) {winner = otherPlayer; return;}
-            if (playerPieces[value]) {winner = otherPlayer; return;} // Der Player hat diesen Stein schon gespielt.
+            if (playedPieces[value]) {winner = otherPlayer; return;} // Der Player hat diesen Stein schon gespielt.
             if (board[x][y] != null) { // Das Feld ist schon belegt
                 if (board[x][y].firstPlayer() == firstPlayerTurn || board[x][y].value() >= value) {
                     winner = otherPlayer; return;
                 }
-            }
-            //*****
+            } // end checking
+
             else { // board[x][y] = null
                 countOfFields++;
             }
             board[x][y] = new Field(value, firstPlayerTurn);
-            playerPieces[value] = true;
+            playedPieces[value] = true;
             if (check(board, firstPlayerTurn, x, y)) {
                 winner = player; return;
             }
@@ -153,7 +155,7 @@ public class Game {
 
     public static void main(String[] args) {
         PenguAI firstPlayer = new HumanPlayer();
-        PenguAI secondPlayer = new HumanPlayer();
+        PenguAI secondPlayer = new SimpleAI();
         Game game = new Game(firstPlayer, secondPlayer);
         game.playGame();
         if(firstPlayer == game.getWinner()) {
