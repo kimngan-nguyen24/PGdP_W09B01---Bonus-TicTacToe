@@ -120,7 +120,7 @@ public class SimpleAI extends PenguAI {
         return new Move(0, 0, 0);
     }
 
-    private static Set<Integer> movePositions (boolean[][] pBoard) {
+    protected static Set<Integer> movePositions (boolean[][] pBoard) {
         Set<Integer> result = new HashSet<>();
         int count1 = 0, count2 = 0; // count1, count2 sind für Diagonale
         int f1 = 0, f2 = 0;
@@ -157,7 +157,7 @@ public class SimpleAI extends PenguAI {
      * @param pBoard boolean[][]
      * @return Set
      */
-    private static Set<Integer> blockPositions (boolean[][] pBoard) {
+    protected static Set<Integer> blockPositions (boolean[][] pBoard) {
         Set<Integer> result = new HashSet<>();
         int count1 = 0, count2 = 0; // count1, count2 sind für Diagonale
         for (int y = 0; y < 3; y++) {
@@ -181,7 +181,7 @@ public class SimpleAI extends PenguAI {
         return result;
     }
 
-    private int[] encodeBlockPositions (int n) {
+    protected int[] encodeBlockPositions (int n) {
         switch (n) {
             case 0:
             case 1:

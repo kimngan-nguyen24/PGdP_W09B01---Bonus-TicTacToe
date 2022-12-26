@@ -1,5 +1,6 @@
 package pgdp.tictactoe;
 
+import pgdp.tictactoe.ai.CompetitionAI;
 import pgdp.tictactoe.ai.HumanPlayer;
 import pgdp.tictactoe.ai.SimpleAI;
 
@@ -82,6 +83,22 @@ public class Game {
             count++;
             firstPlayerTurn = !firstPlayerTurn;
         } while (count < 18); // break wenn count == 18
+
+        // TASK Competition
+        // Wenn alle Steine gelegt wurden, ist es nicht direkt ein Unentschieden
+        // sondern jeder Pinguin zählt die Summe von seinen sichtbaren Steinen auf dem Spielfeld.
+        // Der Pinguin mit der kleineren Summe hat dann gewonnen.
+        int count1 = 0;
+        int count2 = 0;
+        for (int y = 0; y < 3; y++) {
+            for (int x = 0; x < 3; x++) {
+                if (board[x][y] == null) ;
+                else if (board[x][y].firstPlayer()) count1++;
+                else count2++;
+            }
+        }
+        if (count1 < count2) winner = firstPlayer;
+        if (count2 < count1) winner = secondPlayer;
     }
 
     /**
@@ -154,7 +171,7 @@ public class Game {
     }
 
     public static void main(String[] args) {
-        PenguAI firstPlayer = new SimpleAI();
+        PenguAI firstPlayer = new CompetitionAI();
         PenguAI secondPlayer = new SimpleAI();
         Game game = new Game(firstPlayer, secondPlayer);
         game.playGame();
