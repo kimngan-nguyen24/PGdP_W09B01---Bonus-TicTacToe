@@ -20,7 +20,7 @@ public class SimpleAI extends PenguAI {
     @Override
     public Move makeMove(Field[][] board, boolean firstPlayer, boolean[] firstPlayedPieces,
             boolean[] secondPlayedPieces) {
-        //Game.printBoard(board);
+        Game.printBoard(board);
         important = true;
         block = new ArrayList<>();
         boolean[] playedPieces = (firstPlayer)? firstPlayedPieces : secondPlayedPieces;
@@ -37,7 +37,7 @@ public class SimpleAI extends PenguAI {
         }
 
         int otherMaxValue = 8; // otherMaxValue is the biggest stone of other player
-        while (otherMaxValue >= 0 && otherPlayedPieces[otherMaxValue]) otherMaxValue--;
+        while (otherMaxValue > 0 && otherPlayedPieces[otherMaxValue]) otherMaxValue--;
 
         for (int y = 0; y < 3; y++) {
             for (int x = 0; x < 3; x++) {

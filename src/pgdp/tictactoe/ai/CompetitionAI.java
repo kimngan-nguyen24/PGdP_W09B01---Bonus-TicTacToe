@@ -17,6 +17,7 @@ public class CompetitionAI extends SimpleAI {
             boolean[] playedPieces = (firstPlayer) ? firstPlayedPieces : secondPlayedPieces;
             boolean[] otherPlayedPieces = (firstPlayer)? secondPlayedPieces : firstPlayedPieces;
             boolean needToBlock = (block.size() > 0);
+            int sum1 = 0, sum2 = 0;
             int minValue = 0;
             while (playedPieces[minValue]) { // minValue is the smallest stone
                 minValue++;
@@ -37,6 +38,7 @@ public class CompetitionAI extends SimpleAI {
                     if (board[x][y] == null) ;
                     else if (board[x][y].firstPlayer() == firstPlayer) {
                         playedPosition.add(y*3 + x);
+                        sum1 += board[x][y].value();
                     } else {
                         otherPlayedPosition.add(y*3 + x);
                         if (board[x][y].value() >= maxValue) {
@@ -45,6 +47,7 @@ public class CompetitionAI extends SimpleAI {
                             if (x == y) wayCannotGo[6] = true;
                             if (x + y == 2) wayCannotGo[7] = true;
                         }
+                        sum2 += board[x][y].value();
                     }
                 }
             }
@@ -126,18 +129,20 @@ public class CompetitionAI extends SimpleAI {
                 }
             }
             if (otherMaxValue == -1) { // otherPlayer hat keinen Stein mehr
-                int x0 = 0, y0 = 0;
+                int x0 = 0, y0 = 0, value = maxValue;
                 for (int y = 0; y < 3; y++) {
                     for (int x = 0; x < 3; x++) {
                         if (board[x][y] == null) return new Move(x, y, minValue);
                         else if (board[x][y].firstPlayer() != firstPlayer) {
-                            if (board[x][y].value() < maxValue) {
+                            if (board[x][y].value() < value) {
                                 x0 = x; y0 = y;
+                                value = board[x][y].value() + 1;
                             }
                         }
                     }
                 }
-                return new Move(x0, y0, maxValue);
+                while (value <= maxValue && playedPieces[value]) value++;
+                return new Move(x0, y0, value);
             }
             if (needToBlock) return move;
             if (otherMaxValue >= maxValue && otherPlayedPosition.size() >= 2) {
@@ -167,14 +172,20 @@ public class CompetitionAI extends SimpleAI {
                     default: j1 = 1; j2 = 7; break;
                 }
                 int x, y, val = -1;
-                int x1 = j1%3, y1 = j1/3, x2 = j2%3, y2 = j2/3, indexNull = 0;
+                int x1 = j1%3, y1 = j1/3, x2 = j2%3, y2 = j2/3, indexNull = 0, indexOther = 0;
                 if (board[x1][y1] == null) indexNull = 1;
-                else if (board[x1][y1].value() < minValue) return new Move(x1, y1, minValue);
+                else if (board[x1][y1].value() < minValue) indexOther = 1;
 
                 if (board[x2][y2] == null) indexNull = 2;
-                else if (board[x2][y2].value() < minValue) return new Move(x2, y2, minValue);
+                else if (board[x2][y2].value() < minValue) indexOther = 2;
 
-                return (indexNull == 1)? new Move(x1, y1, minValue) : new Move(x2, y2, minValue);
+                if ((firstPlayer && sum1 >= sum2) || (!firstPlayer && sum1 + minValue >= sum2)) {
+                    // not overlap
+                    return (indexNull == 1) ? new Move(x1, y1, minValue) : new Move(x2, y2, minValue);
+                }
+                else { // secondPlayer
+                    return (indexOther == 1) ? new Move(x1, y1, minValue) : new Move(x2, y2, minValue);
+                }
             }
             else { // playedPosition.size() == 0
                 int indexNull = 0;
@@ -205,13 +216,5 @@ public class CompetitionAI extends SimpleAI {
             return maxValue;
         }
         return res;
-    }
-    class Pair<T, R> {
-        T t;
-        R r;
-        public Pair(T t, R r) {
-            this.t = t;
-            this.r = r;
-        }
     }
 }
