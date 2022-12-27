@@ -93,8 +93,8 @@ public class Game {
         for (int y = 0; y < 3; y++) {
             for (int x = 0; x < 3; x++) {
                 if (board[x][y] == null) ;
-                else if (board[x][y].firstPlayer()) count1++;
-                else count2++;
+                else if (board[x][y].firstPlayer()) count1+= board[x][y].value();
+                else count2+= board[x][y].value();
             }
         }
         if (count1 < count2) winner = firstPlayer;
@@ -173,15 +173,37 @@ public class Game {
     public static void main(String[] args) {
         PenguAI firstPlayer = new CompetitionAI();
         PenguAI secondPlayer = new SimpleAI();
-        Game game = new Game(firstPlayer, secondPlayer);
-        game.playGame();
-        if(firstPlayer == game.getWinner()) {
-            System.out.println("Herzlichen Glückwunsch erster Spieler");
-        } else if(secondPlayer == game.getWinner()) {
-            System.out.println("Herzlichen Glückwunsch zweiter Spieler");
-        } else {
-            System.out.println("Unentschieden");
+        int win = 0, lose = 0, draw = 0;
+        for (int i = 0; i < 10; i++) {
+            Game game = new Game(firstPlayer, secondPlayer);
+            game.playGame();
+            if (firstPlayer == game.getWinner()) {
+                //System.out.println("Herzlichen Glückwunsch erster Spieler");
+                win++;
+            } else if (secondPlayer == game.getWinner()) {
+                //System.out.println("Herzlichen Glückwunsch zweiter Spieler");
+                lose++;
+            } else {
+                //System.out.println("Unentschieden");
+                draw++;
+            }
+
+            game = new Game(secondPlayer, firstPlayer);
+            game.playGame();
+            if (firstPlayer == game.getWinner()) {
+                //System.out.println("Herzlichen Glückwunsch erster Spieler");
+                win++;
+            } else if (secondPlayer == game.getWinner()) {
+                //System.out.println("Herzlichen Glückwunsch zweiter Spieler");
+                lose++;
+            } else {
+                //System.out.println("Unentschieden");
+                draw++;
+            }
         }
-        game.playGame();
+
+        System.out.println("Win: " + win);
+        System.out.println("Lose: " + lose);
+        System.out.println("Draw: " + draw);
     }
 }

@@ -15,10 +15,14 @@ public class SimpleAI extends PenguAI {
      *  soll dieser gewählt werden, außer deine KI kann selbst direkt gewinnen.
      */
 
+    protected boolean important;
+    protected List<Integer> block;
     @Override
     public Move makeMove(Field[][] board, boolean firstPlayer, boolean[] firstPlayedPieces,
             boolean[] secondPlayedPieces) {
-        Game.printBoard(board);
+        //Game.printBoard(board);
+        important = true;
+        block = new ArrayList<>();
         boolean[] playedPieces = (firstPlayer)? firstPlayedPieces : secondPlayedPieces;
         boolean[] otherPlayedPieces = (firstPlayer)? secondPlayedPieces : firstPlayedPieces;
         boolean[][] playerBoard = new boolean[3][3];
@@ -32,8 +36,9 @@ public class SimpleAI extends PenguAI {
             maxValue--;
         }
 
-        int otherMaxValue = 8;
+        int otherMaxValue = 8; // otherMaxValue is the biggest stone of other player
         while (otherMaxValue >= 0 && otherPlayedPieces[otherMaxValue]) otherMaxValue--;
+
         for (int y = 0; y < 3; y++) {
             for (int x = 0; x < 3; x++) {
                 if (board[x][y] == null) {xRes = x; yRes = y;} 
@@ -52,18 +57,37 @@ public class SimpleAI extends PenguAI {
                 return new Move(x, y, minValue);
             }
             else {
-                int value = board[x][y].value() + 1;
-                while (value < 9 && playedPieces[value]) value++;
-                if (value < 9) return new Move(x, y, value);
+                if (board[x][y].value() < maxValue) return new Move(x, y, maxValue);
             }
         }
 
         // Falls der Gegner im nächsten Zug gewinnen kann und deine KI dies durch einen Zug verhindern kann
-        Set<Integer> blockPositions = blockPositions(otherPlayerBoard);
-        int notPrefer = -1;
-        for (Integer i : blockPositions) {
+        List<Integer> blockPositions = blockPositions(otherPlayerBoard, board, otherMaxValue);
+        if (blockPositions.size() >= 2) {
+            int i1 = blockPositions.get(0); int i2 = blockPositions.get(1);
+            int[] encode1 = encodeBlockPositions(i1);
+            int[] encode2 = encodeBlockPositions(i2);
+            int blockIndex = encode1[0]; // blockIndex is the intersection of these two ways
+            for (int i = 0; i < 3; i++) {
+                boolean continued = true;
+                for (int j = 0; j < 3; j++) {
+                    if (encode1[i] == encode2[j]) {blockIndex = encode1[i]; continued = false; break;}
+                }
+                if (!continued) break;
+            }
+            int x = blockIndex%3, y = blockIndex/3;
+            if (board[x][y].value() < maxValue) { // can overlap
+                int value = board[x][y].value() + 1;
+                while (value <= maxValue && playedPieces[value]) value++;
+                block.add(y*3 + x);
+                return new Move(x, y, value);
+            }
+        }
+        if (blockPositions.size() >= 1) {
+            int i = blockPositions.get(0);
             int[] encode = encodeBlockPositions(i);
             int x0 = -1, y0 = -1, value0 = maxValue + 1;
+            int notPrefer = -1;
             for (int j : encode) {
                 int x = j % 3, y = j / 3;
                 if (board[x][y] == null) {
@@ -76,6 +100,7 @@ public class SimpleAI extends PenguAI {
                             y0 = y;
                             value0 = value;
                         }
+                        block.add(y*3 + x);
                     }
                     else { // cannot actually block, otherMaxValue > maxValue
                         notPrefer = y*3 + x;
@@ -90,21 +115,16 @@ public class SimpleAI extends PenguAI {
                             y0 = y;
                             value0 = value;
                         }
-                    }
-                }
-                else { // board[x][y].firstPlayer() == firstPlayer
-                    if (board[x][y].value() >= otherMaxValue) { // AI has already blocked with a big enough stone
-                                                    // this cannot be replaced -> the opponent cannot use this way
-                        x0 = -1; // reset x0
-                        break;
+                        block.add(y*3 + x);
                     }
                 }
             }
             if (x0 != -1) return new Move(x0, y0, value0);
+            if (notPrefer != -1) return new Move(notPrefer%3, notPrefer/3, maxValue); // kann nicht 100% verhindern
         }
-        if (notPrefer != -1) return new Move(notPrefer%3, notPrefer/3, maxValue);
 
         // normaler Fall
+        important = false;
         if (xRes != -1) return new Move(xRes, yRes, minValue); // bewege sich zum freien Field
         else {
             for (int y = 0; y < 3; y++) {
@@ -127,7 +147,7 @@ public class SimpleAI extends PenguAI {
         for (int y = 0; y < 3; y++) {
             int countX = 0;
             int countY = 0;
-            int xF = 0; int yF = 0;
+            int xF = 0, yF = 0;
             for (int x = 0; x < 3; x++) {
                 // check row
                 if (pBoard[x][y]) countX++;
@@ -154,30 +174,50 @@ public class SimpleAI extends PenguAI {
      *  0 1 2       0 = (0, 3, 6)    1 = (1, 4, 7)   2 = (2, 5, 8)
      *  3 4 5       3 = (0, 1, 2)    4 = (3, 4, 5)   5 = (6, 7, 8)
      *  6 7 8       6 = (0, 4, 8)    7 = (2, 4, 6)
+     *  The way that is already been blocked with an enough big stone.
+     *  The other cannot win by this way. It will not be in the result list.
      * @param pBoard boolean[][]
      * @return Set
      */
-    protected static Set<Integer> blockPositions (boolean[][] pBoard) {
-        Set<Integer> result = new HashSet<>();
+    protected static List<Integer> blockPositions (boolean[][] pBoard, Field[][] board, int maxValue) {
+        List<Integer> result = new ArrayList<>();
         int count1 = 0, count2 = 0; // count1, count2 sind für Diagonale
+        int f1 = 0, f2 = 0;
         for (int y = 0; y < 3; y++) {
             int countX = 0;
             int countY = 0;
+            int xF = 0, yF = 0;
             for (int x = 0; x < 3; x++) {
                 // check row
                 if (pBoard[x][y]) countX++;
+                else xF = x;
                 // check column
                 if (pBoard[y][x]) countY++; // first position is fixed
+                else yF = x;
             }
-            if (countX == 2) result.add(y + 3);
-            if (countY == 2) result.add(y);
+            if (countX == 2) {
+                if (board[xF%3][xF/3] != null && (board[xF%3][xF/3].value() >= maxValue)) ;
+                else if (!result.contains(y + 3)) result.add(y + 3);
+            }
+            if (countY == 2) {
+                if (board[yF%3][yF/3] != null && (board[yF%3][yF/3].value() >= maxValue)) ;
+                else if (!result.contains(y)) result.add(y);
+            }
 
             // check diagonals
             if (pBoard[y][y]) count1++;
+            else f1 = y;
             if (pBoard[2 - y][y]) count2++;
+            else f1 = y;
         }
-        if (count1 == 2) result.add(6);
-        if (count2 == 2) result.add(7);
+        if (count1 == 2) {
+            if (board[f1%3][f1/3] != null && (board[f1%3][f1/3].value() >= maxValue)) ;
+            else if (!result.contains(6)) result.add(6);
+        }
+        if (count2 == 2) {
+            if (board[f2%3][f2/3] != null && (board[f2%3][f2/3].value() >= maxValue)) ;
+            else if (!result.contains(7)) result.add(7);
+        }
         return result;
     }
 

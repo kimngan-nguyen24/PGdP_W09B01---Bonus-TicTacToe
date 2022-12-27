@@ -5,114 +5,213 @@ import pgdp.tictactoe.Game;
 import pgdp.tictactoe.Move;
 import pgdp.tictactoe.PenguAI;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
 
 public class CompetitionAI extends SimpleAI {
     @Override
     public Move makeMove(Field[][] board, boolean firstPlayer, boolean[] firstPlayedPieces,
                          boolean[] secondPlayedPieces) {
-        Game.printBoard(board);
-        boolean[] playedPieces = (firstPlayer)? firstPlayedPieces : secondPlayedPieces;
-        boolean[] otherPlayedPieces = (firstPlayer)? secondPlayedPieces : firstPlayedPieces;
-        boolean[][] playerBoard = new boolean[3][3];
-        boolean[][] otherPlayerBoard = new boolean[3][3];
-        List<Integer> list = new ArrayList<>(); int countOfFree = 0;
-        int xRes = -1, yRes = -1, valRes = 9;
-        int minValue = 0;
-        while (playedPieces[minValue]) { // minValue is the smallest stone
-            minValue++;
-        }
-        int maxValue = 8;
-        while (maxValue > minValue && playedPieces[maxValue]) { // maxValue is the biggest stone
-            maxValue--;
-        }
+        Move move = super.makeMove(board, firstPlayer, firstPlayedPieces, secondPlayedPieces);
+        if (!super.important || super.block.size() > 0) {
+            // normaler Fall, d.h. es gibt kein 2 Marken des Gegners in einer Reihe/Spalte/Diagonale
+            boolean[] playedPieces = (firstPlayer) ? firstPlayedPieces : secondPlayedPieces;
+            boolean[] otherPlayedPieces = (firstPlayer)? secondPlayedPieces : firstPlayedPieces;
+            boolean needToBlock = (block.size() > 0);
+            int minValue = 0;
+            while (playedPieces[minValue]) { // minValue is the smallest stone
+                minValue++;
+            }
+            int maxValue = 8;
+            while (maxValue > minValue && playedPieces[maxValue]) { // maxValue is the biggest stone
+                maxValue--;
+            }
+            int otherMaxValue = 8; // otherMaxValue is the biggest stone of other player
+            while (otherMaxValue >= 0 && otherPlayedPieces[otherMaxValue]) otherMaxValue--;
 
-        int otherMaxValue = 8;
-        while (otherMaxValue >= 0 && otherPlayedPieces[otherMaxValue]) otherMaxValue--;
-        for (int y = 0; y < 3; y++) {
-            for (int x = 0; x < 3; x++) {
-                if (board[x][y] == null) {
-                    list.add(y*3 + x);
+            List<Integer> playedPosition = new ArrayList<>();
+            List<Integer> otherPlayedPosition = new ArrayList<>();
+            boolean[] wayCannotGo = new boolean[8];
+            // update wayCanGo
+            for (int y = 0; y < 3; y++) {
+                for (int x = 0; x < 3; x++) {
+                    if (board[x][y] == null) ;
+                    else if (board[x][y].firstPlayer() == firstPlayer) {
+                        playedPosition.add(y*3 + x);
+                    } else {
+                        otherPlayedPosition.add(y*3 + x);
+                        if (board[x][y].value() >= maxValue) {
+                            wayCannotGo[x] = true;
+                            wayCannotGo[y + 3] = true;
+                            if (x == y) wayCannotGo[6] = true;
+                            if (x + y == 2) wayCannotGo[7] = true;
+                        }
+                    }
                 }
-                else if (board[x][y].firstPlayer() == firstPlayer) playerBoard[x][y] = true;
+            }
+
+            if (playedPosition.size() >= 2) {
+                for (Integer i : playedPosition) {
+                    for (Integer j : playedPosition) {
+                        if (i >= j) ;
+                        else {
+                            int x1 = i%3, y1 = i/3, x2 = j%3, y2 = j/3;
+                            if (x1 != x2 && y1 != y2) {
+                                // try to place at the position (x1, y2) or (x2, y1)
+                                // x1 y2
+                                if (!wayCannotGo[x1] && !wayCannotGo[y2]) {
+                                    int val = tryPosition(board, x1, y2, maxValue);
+                                    if (val != -1 && (!needToBlock || block.contains(y2*3 + x1)))
+                                        return new Move(x1, y2, val);
+                                }
+                                if (!wayCannotGo[x2] && !wayCannotGo[y1]) {
+                                    int val = tryPosition(board, x2, y1, maxValue);
+                                    if (val != -1 && (!needToBlock || block.contains(y1*3 + x2)))
+                                        return new Move(x2, y1, val);
+                                }
+                            }
+                            else if (x1 == x2 && x1 != 1) {
+                                // i < j => y1 < y2
+                                if (y1 + y2 == 2) { // (0, 2)
+                                    if (!wayCannotGo[6] && !wayCannotGo[7]) {
+                                        int val = tryPosition(board, 1, 1, maxValue);
+                                        if (val != -1 && (!needToBlock || block.contains(4)))
+                                            return new Move(1, 1, val);
+                                    }
+                                }
+                                else if (!wayCannotGo[4]) {
+                                    if (x1 == y1 || x2 == y2) {
+                                        if (!wayCannotGo[6]) {
+                                            int val = tryPosition(board, 1, 1, maxValue);
+                                            if (val != -1 && (!needToBlock || block.contains(4)))
+                                                return new Move(1, 1, val);
+                                        }
+                                    }
+                                    else {
+                                        if (!wayCannotGo[7]) {
+                                            int val = tryPosition(board, 1, 1, maxValue);
+                                            if (val != -1 && (!needToBlock || block.contains(4)))
+                                                return new Move(1, 1, val);
+                                        }
+                                    }
+                                }
+                            }
+                            else if (y1 == y2 && y1 != 1) {
+                                // i < j => x1 < x2
+                                if (x1 + x2 == 2) { // (0, 2)
+                                    if (!wayCannotGo[6] && !wayCannotGo[7]) {
+                                        int val = tryPosition(board, 1, 1, maxValue);
+                                        if (val != -1 && (!needToBlock || block.contains(4)))
+                                            return new Move(1, 1, val);
+                                    }
+                                }
+                                else if (!wayCannotGo[1]) {
+                                    if (x1 == y1 || x2 == y2) {
+                                        if (!wayCannotGo[6]) {
+                                            int val = tryPosition(board, 1, 1, maxValue);
+                                            if (val != -1 && (!needToBlock || block.contains(4)))
+                                                return new Move(1, 1, val);
+                                        }
+                                    }
+                                    else {
+                                        if (!wayCannotGo[7]) {
+                                            int val = tryPosition(board, 1, 1, maxValue);
+                                            if (val != -1 && (!needToBlock || block.contains(4)))
+                                                return new Move(1, 1, val);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            if (otherMaxValue == -1) { // otherPlayer hat keinen Stein mehr
+                int x0 = 0, y0 = 0;
+                for (int y = 0; y < 3; y++) {
+                    for (int x = 0; x < 3; x++) {
+                        if (board[x][y] == null) return new Move(x, y, minValue);
+                        else if (board[x][y].firstPlayer() != firstPlayer) {
+                            if (board[x][y].value() < maxValue) {
+                                x0 = x; y0 = y;
+                            }
+                        }
+                    }
+                }
+                return new Move(x0, y0, maxValue);
+            }
+            if (needToBlock) return move;
+            if (otherMaxValue >= maxValue && otherPlayedPosition.size() >= 2) {
+                int i = otherPlayedPosition.get(0);
+                int j = otherPlayedPosition.get(1);
+                int x, y, value;
+                if (board[i%3][i/3].value() < board[j%3][j/3].value()) {
+                    x = i % 3;
+                    y = i / 3;
+                }
                 else {
-                    otherPlayerBoard[x][y] = true;
-                    if (list.isEmpty() && board[x][y].value() < maxValue) {
-                        int val = board[x][y].value() + 1;
-                        while (val <= maxValue && playedPieces[val]) val++;
-                        if (val < valRes) {
-                            xRes = x; yRes = y; valRes = val;
-                        }
-                    }
+                    x = j % 3;
+                    y = j / 3;
                 }
+                value = board[x][y].value() + 1;
+                while (value <= maxValue && playedPieces[value]) value++;
+                return new Move(x, y, value);
+            }
+
+            if (playedPosition.size() == 1) {
+                int i = playedPosition.get(0);
+                int j1, j2;
+                switch(i) {
+                    case 1:
+                    case 7: j1 = 3; j2 = 5; break;
+                    case 3:
+                    default: j1 = 1; j2 = 7; break;
+                }
+                int x, y, val = -1;
+                int x1 = j1%3, y1 = j1/3, x2 = j2%3, y2 = j2/3, indexNull = 0;
+                if (board[x1][y1] == null) indexNull = 1;
+                else if (board[x1][y1].value() < minValue) return new Move(x1, y1, minValue);
+
+                if (board[x2][y2] == null) indexNull = 2;
+                else if (board[x2][y2].value() < minValue) return new Move(x2, y2, minValue);
+
+                return (indexNull == 1)? new Move(x1, y1, minValue) : new Move(x2, y2, minValue);
+            }
+            else { // playedPosition.size() == 0
+                int indexNull = 0;
+                if (board[1][0] == null) indexNull = 1;
+                else if (board[1][0].value() < minValue) return new Move(1, 0, minValue);
+
+                if (board[0][1] == null) indexNull = 3;
+                else if (board[0][1].value() < minValue) return new Move(0, 1, minValue);
+
+                if (board[2][1] == null) indexNull = 5;
+                else if (board[2][1].value() < minValue) return new Move(2, 1, minValue);
+
+                if (board[1][2] == null) indexNull = 7;
+                else if (board[1][2].value() < minValue) return new Move(1, 2, minValue);
+
+                return new Move(indexNull%3, indexNull/3, minValue);
             }
         }
+        return move;
+    }
 
-        // Falls ein Zug dazu führen würde, dass deine KI direkt gewinnt
-        Set<Integer> movePositions = movePositions(playerBoard);
-        for (Integer i : movePositions) {
-            int x = i % 3, y = i / 3;
-            if (board[x][y] == null) { // Das Feld ist frei, value ist nicht notwendig
-                return new Move(x, y, minValue);
-            }
-            else {
-                int value = board[x][y].value() + 1;
-                while (value < 9 && playedPieces[value]) value++;
-                if (value < 9) return new Move(x, y, value);
-            }
+    private int tryPosition (Field[][] board, int x, int y, int maxValue) {
+        int res = -1;
+        if (board[x][y] == null) {
+            return maxValue;
         }
-
-        // Falls der Gegner im nächsten Zug gewinnen kann und deine KI dies durch einen Zug verhindern kann
-        Set<Integer> blockPositions = blockPositions(otherPlayerBoard);
-        for (Integer i : blockPositions) {
-            int[] encode = encodeBlockPositions(i);
-            int x0 = -1, y0 = -1, value0 = maxValue + 1;
-            for (int j : encode) {
-                int x = j % 3, y = j / 3;
-                if (board[x][y] == null) {
-                    // Das Feld ist frei
-                    if (otherMaxValue <= maxValue) { // AI can "actually" block
-                        int value = otherMaxValue;
-                        while (value <= maxValue && playedPieces[value]) value++;
-                        if (value < value0) {
-                            x0 = x;
-                            y0 = y;
-                            value0 = value;
-                        }
-                    }
-                }
-                else if (board[x][y].firstPlayer() != firstPlayer) {
-                    if (board[x][y].value() < maxValue) { // can overlap
-                        int value = board[x][y].value() + 1;
-                        while (value <= maxValue && playedPieces[value]) value++;
-                        if (value < value0) { // ersetze den Steinen nur, wenn der benötigte Wert value < value0
-                            x0 = x;
-                            y0 = y;
-                            value0 = value;
-                        }
-                    }
-                }
-                else { // board[x][y].firstPlayer() == firstPlayer
-                    if (board[x][y].value() >= otherMaxValue) { // AI has already blocked with a big enough stone
-                        // this cannot be replaced -> the opponent cannot use this way
-                        x0 = -1; // reset x0
-                        break;
-                    }
-                }
-            }
-            if (x0 != -1) return new Move(x0, y0, value0);
+        else if (board[x][y].value() < maxValue) {
+            return maxValue;
         }
-
-        // normaler Fall
-        if (list.isEmpty()) return new Move(xRes, yRes, valRes);
-        else {
-            Random random = new Random();
-            int n = random.nextInt(list.size());
-            int index = list.get(n);
-            return new Move(index%3, index/3, minValue);
+        return res;
+    }
+    class Pair<T, R> {
+        T t;
+        R r;
+        public Pair(T t, R r) {
+            this.t = t;
+            this.r = r;
         }
     }
 }
