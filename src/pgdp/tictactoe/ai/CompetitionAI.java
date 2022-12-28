@@ -197,23 +197,23 @@ public class CompetitionAI extends SimpleAI {
                                 }
                             }
                             if (yi != i % 3) { // check x
-                                if (board[i%3][yi] != null && board[yi][i/3].firstPlayer() == firstPlayer) {
+                                if (board[yi][i/3] != null && board[yi][i/3].firstPlayer() == firstPlayer) {
                                     isThere1 = true; break;
                                 }
                             }
                             if (yi != j / 3) { // check y, same x of j
-                                if (board[i%3][yi] != null && board[j%3][yi].firstPlayer() == firstPlayer) {
+                                if (board[j%3][yi] != null && board[j%3][yi].firstPlayer() == firstPlayer) {
                                     isThere2 = true; break;
                                 }
                             }
                             if (yi != j % 3) { // check x
-                                if (board[i%3][yi] != null && board[yi][j/3].firstPlayer() == firstPlayer) {
+                                if (board[yi][j/3] != null && board[yi][j/3].firstPlayer() == firstPlayer) {
                                     isThere2 = true; break;
                                 }
                             }
                         }
-                        if (isThere1) return new Move(i%3, i/3, value1);
-                        else if (isThere2) return new Move(j%3, j/3, value2);
+                        if (!isThere1 && isThere2) return new Move(i%3, i/3, value1);
+                        if (isThere1 && !isThere2) return new Move(j%3, j/3, value2);
                     }
                     if (diff1 < diff2) {
                         x = i % 3;
