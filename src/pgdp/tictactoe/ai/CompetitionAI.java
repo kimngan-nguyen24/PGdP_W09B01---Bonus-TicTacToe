@@ -12,6 +12,23 @@ public class CompetitionAI extends SimpleAI {
     public Move makeMove(Field[][] board, boolean firstPlayer, boolean[] firstPlayedPieces,
                          boolean[] secondPlayedPieces) {
         Move move = super.makeMove(board, firstPlayer, firstPlayedPieces, secondPlayedPieces);
+        if (!important) {
+            List<Integer> nullIndex = new ArrayList<>();
+            int x0 = 0, y0 = 0;
+            for (int y = 0; y < 3; y++) {
+                for (int x = 0; x < 3; x++) {
+                    if (board[x][y] == null) nullIndex.add(y * 3 + x);
+                }
+            }
+            if (nullIndex.size() != 0) {
+                Random random = new Random();
+                int r = random.nextInt(nullIndex.size());
+                int i = nullIndex.get(r);
+                return new Move(i%3, i/3, move.value());
+            }
+        }
+        return move;
+        /*Move move = super.makeMove(board, firstPlayer, firstPlayedPieces, secondPlayedPieces);
         if (!super.important || super.block.size() > 0) {
             // normaler Fall, d.h. es gibt kein 2 Marken des Gegners in einer Reihe/Spalte/Diagonale
             boolean[] playedPieces = (firstPlayer) ? firstPlayedPieces : secondPlayedPieces;
@@ -207,7 +224,7 @@ public class CompetitionAI extends SimpleAI {
                 return new Move(indexNull%3, indexNull/3, minValue);
             }
         }
-        return move;
+        return move; */
     }
 
     private int tryPosition (Field[][] board, int x, int y, int maxValue) {
