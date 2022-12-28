@@ -12,23 +12,6 @@ public class CompetitionAI extends SimpleAI {
     public Move makeMove(Field[][] board, boolean firstPlayer, boolean[] firstPlayedPieces,
                          boolean[] secondPlayedPieces) {
         Move move = super.makeMove(board, firstPlayer, firstPlayedPieces, secondPlayedPieces);
-        if (!important) {
-            List<Integer> nullIndex = new ArrayList<>();
-            int x0 = 0, y0 = 0;
-            for (int y = 0; y < 3; y++) {
-                for (int x = 0; x < 3; x++) {
-                    if (board[x][y] == null) nullIndex.add(y * 3 + x);
-                }
-            }
-            if (nullIndex.size() != 0) {
-                Random random = new Random();
-                int r = random.nextInt(nullIndex.size());
-                int i = nullIndex.get(r);
-                return new Move(i%3, i/3, move.value());
-            }
-        }
-        return move;
-        /*Move move = super.makeMove(board, firstPlayer, firstPlayedPieces, secondPlayedPieces);
         if (!super.important || super.block.size() > 0) {
             // normaler Fall, d.h. es gibt kein 2 Marken des Gegners in einer Reihe/Spalte/Diagonale
             boolean[] playedPieces = (firstPlayer) ? firstPlayedPieces : secondPlayedPieces;
@@ -69,7 +52,7 @@ public class CompetitionAI extends SimpleAI {
                 }
             }
 
-            if (otherMaxValue == -1) { // otherPlayer hat keinen Stein mehr
+            if (otherMaxValue == -1) { // otherPlayer hat keinen Stein mehr, wir haben noch einen Stein
                 int x0 = 0, y0 = 0, value = maxValue;
                 for (int y = 0; y < 3; y++) {
                     for (int x = 0; x < 3; x++) {
@@ -179,11 +162,14 @@ public class CompetitionAI extends SimpleAI {
                 }
                 value = board[x][y].value() + 1;
                 while (value <= maxValue && playedPieces[value]) value++;
-                return new Move(x, y, value);
+                return new Move(x, y, value); // check here
             }
-
             if (playedPosition.size() == 1) {
-                int i = playedPosition.get(0);
+                int i;
+                if (playedPosition.contains(1)) i = 1;
+                else if (playedPosition.contains(3)) i = 3;
+                else if (playedPosition.contains(5)) i = 5;
+                else i = 7;
                 int j1, j2;
                 switch(i) {
                     case 1:
@@ -199,12 +185,13 @@ public class CompetitionAI extends SimpleAI {
                 if (board[x2][y2] == null) indexNull = 2;
                 else if (board[x2][y2].value() < minValue) indexOther = 2;
 
-                if ((firstPlayer && sum1 >= sum2) || (!firstPlayer && sum1 + minValue >= sum2)) {
-                    // not overlap
-                    return (indexNull == 1) ? new Move(x1, y1, minValue) : new Move(x2, y2, minValue);
-                }
-                else { // secondPlayer
+                if (((!firstPlayer && sum1 + minValue < sum2 ) || (firstPlayer && sum1 < sum2))
+                        && indexOther != 0) {
+                    // overlap
                     return (indexOther == 1) ? new Move(x1, y1, minValue) : new Move(x2, y2, minValue);
+                }
+                else {
+                    return (indexNull == 1) ? new Move(x1, y1, minValue) : new Move(x2, y2, minValue);
                 }
             }
             else { // playedPosition.size() == 0
@@ -224,7 +211,7 @@ public class CompetitionAI extends SimpleAI {
                 return new Move(indexNull%3, indexNull/3, minValue);
             }
         }
-        return move; */
+        return move;
     }
 
     private int tryPosition (Field[][] board, int x, int y, int maxValue) {
