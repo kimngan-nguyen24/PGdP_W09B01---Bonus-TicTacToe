@@ -150,11 +150,12 @@ public class CompetitionAI extends SimpleAI {
             }
             if (block.size() == 1) return move;
 
-            // block.size() >= 2
+            // block.size() >= 2, otherPlayedPosition.size() >= 2
             if ((otherMaxValue >= maxValue && otherPlayedPosition.size() >= 2) || needToBlock) {
                 int i;
                 int j;
                 if (block.size() >= 3) {
+                    // X X -
                     int b1 = block.get(0), b2 = block.get(1), b3 = block.get(2);
                     if (board[b1%3][b1/3] == null) {
                         i = b2; j = b3;
@@ -169,6 +170,7 @@ public class CompetitionAI extends SimpleAI {
                 else if (block.size() == 2) {
                     i = block.get(0);
                     j = block.get(1);
+                    if (board[i%3][i/3] == null || board[j%3][j/3] == null) return move;
                 }
                 else {
                     i = otherPlayedPosition.get(0);
@@ -190,22 +192,22 @@ public class CompetitionAI extends SimpleAI {
                         boolean isThere2 = false;
                         for (int yi = 0; yi < 3; yi++) {
                             if (yi != i / 3) { // check y, same x of i
-                                if (board[i%3][yi].firstPlayer() == firstPlayer) {
+                                if (board[i%3][yi] != null && board[i%3][yi].firstPlayer() == firstPlayer) {
                                     isThere1 = true; break;
                                 }
                             }
                             if (yi != i % 3) { // check x
-                                if (board[yi][i/3].firstPlayer() == firstPlayer) {
+                                if (board[i%3][yi] != null && board[yi][i/3].firstPlayer() == firstPlayer) {
                                     isThere1 = true; break;
                                 }
                             }
                             if (yi != j / 3) { // check y, same x of j
-                                if (board[j%3][yi].firstPlayer() == firstPlayer) {
+                                if (board[i%3][yi] != null && board[j%3][yi].firstPlayer() == firstPlayer) {
                                     isThere2 = true; break;
                                 }
                             }
                             if (yi != j % 3) { // check x
-                                if (board[yi][j/3].firstPlayer() == firstPlayer) {
+                                if (board[i%3][yi] != null && board[yi][j/3].firstPlayer() == firstPlayer) {
                                     isThere2 = true; break;
                                 }
                             }
@@ -234,6 +236,7 @@ public class CompetitionAI extends SimpleAI {
                 }
                 return new Move(x, y, value); // check here
             }
+
             if (playedPosition.size() == 1) {
                 int i = playedPosition.get(0);
                 int j1, j2;
