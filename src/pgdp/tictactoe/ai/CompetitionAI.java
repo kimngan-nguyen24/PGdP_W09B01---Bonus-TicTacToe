@@ -164,10 +164,7 @@ public class CompetitionAI extends SimpleAI {
                 while (value <= maxValue && playedPieces[value]) value++;
                 return new Move(x, y, value); // check here
             }
-            if (playedPosition.size() == 1) {
-                // kann so sein - X7 -
-                //             O1 -  -
-                //              - X8 -
+            /*if (playedPosition.size() == 1) {
                 int i;
                 if (playedPosition.contains(1)) i = 1;
                 else if (playedPosition.contains(3)) i = 3;
@@ -193,7 +190,7 @@ public class CompetitionAI extends SimpleAI {
                     // overlap
                     return (indexOther == 1) ? new Move(x1, y1, minValue) : new Move(x2, y2, minValue);
                 }
-                else if (indexNull != 0){
+                else {
                     return (indexNull == 1) ? new Move(x1, y1, minValue) : new Move(x2, y2, minValue);
                 }
             }
@@ -212,7 +209,7 @@ public class CompetitionAI extends SimpleAI {
                 else if (board[1][2].value() < minValue) return new Move(1, 2, minValue);
 
                 return new Move(indexNull%3, indexNull/3, minValue);
-            }
+            }*/
         }
         return move;
     }
