@@ -27,7 +27,7 @@ public class CompetitionAI extends SimpleAI {
                 maxValue--;
             }
             int otherMaxValue = 8; // otherMaxValue is the biggest stone of other player
-            while (otherMaxValue >= 0 && otherPlayedPieces[otherMaxValue]) otherMaxValue--;
+            while (otherMaxValue > 0 && otherPlayedPieces[otherMaxValue]) otherMaxValue--;
 
             List<Integer> playedPosition = new ArrayList<>();
             List<Integer> otherPlayedPosition = new ArrayList<>();

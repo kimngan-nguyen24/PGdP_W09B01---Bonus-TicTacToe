@@ -38,6 +38,7 @@ public class SimpleAI extends PenguAI {
 
         int otherMaxValue = 8; // otherMaxValue is the biggest stone of other player
         while (otherMaxValue > 0 && otherPlayedPieces[otherMaxValue]) otherMaxValue--;
+        // (es könnte sein, dass der Gegner keinen Stein mehr hat)
 
         for (int y = 0; y < 3; y++) {
             for (int x = 0; x < 3; x++) {

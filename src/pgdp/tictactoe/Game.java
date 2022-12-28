@@ -174,7 +174,7 @@ public class Game {
         PenguAI firstPlayer = new CompetitionAI();
         PenguAI secondPlayer = new CompetitionAI();
         int win = 0, lose = 0, draw = 0;
-        for (int i = 0; i < 1; i++) {
+        for (int i = 0; i < 10; i++) {
             Game game = new Game(firstPlayer, secondPlayer);
             game.playGame();
             if (firstPlayer == game.getWinner()) {
@@ -188,7 +188,7 @@ public class Game {
                 draw++;
             }
 
-            /*game = new Game(secondPlayer, firstPlayer);
+            game = new Game(secondPlayer, firstPlayer);
             game.playGame();
             if (firstPlayer == game.getWinner()) {
                 //System.out.println("Herzlichen Glückwunsch erster Spieler");
@@ -199,7 +199,7 @@ public class Game {
             } else {
                 //System.out.println("Unentschieden");
                 draw++;
-            }*/
+            }
         }
 
         System.out.println("Win: " + win);
