@@ -71,6 +71,7 @@ public class CompetitionAI extends SimpleAI {
                 return new Move(x0, y0, minValue);
             }
 
+            // try out strategy
             if (playedPosition.size() >= 2) {
                 for (Integer i : playedPosition) {
                     for (Integer j : playedPosition) {
@@ -147,21 +148,90 @@ public class CompetitionAI extends SimpleAI {
                     }
                 }
             }
-            if (needToBlock) return move;
-            if (otherMaxValue >= maxValue && otherPlayedPosition.size() >= 2) {
-                int i = otherPlayedPosition.get(0);
-                int j = otherPlayedPosition.get(1);
-                int x, y, value;
-                if (board[i%3][i/3].value() < board[j%3][j/3].value()) {
-                    x = i % 3;
-                    y = i / 3;
+            if (block.size() == 1) return move;
+
+            // block.size() >= 2
+            if ((otherMaxValue >= maxValue && otherPlayedPosition.size() >= 2) || needToBlock) {
+                int i;
+                int j;
+                if (block.size() >= 3) {
+                    int b1 = block.get(0), b2 = block.get(1), b3 = block.get(2);
+                    if (board[b1%3][b1/3] == null) {
+                        i = b2; j = b3;
+                    }
+                    else if (board[b2%3][b2/3] == null) {
+                        i = b1; j = b3;
+                    }
+                    else {
+                        i = b1; j = b2;
+                    }
+                }
+                else if (block.size() == 2) {
+                    i = block.get(0);
+                    j = block.get(1);
                 }
                 else {
-                    x = j % 3;
-                    y = j / 3;
+                    i = otherPlayedPosition.get(0);
+                    j = otherPlayedPosition.get(1);
                 }
-                value = board[x][y].value() + 1;
-                while (value <= maxValue && playedPieces[value]) value++;
+                int x, y, value;
+                int value1 = board[i%3][i/3].value() + 1;
+                int value2 = board[j%3][j/3].value() + 1;
+                while (value1 <= maxValue && playedPieces[value1]) value1++;
+                while (value2 <= maxValue && playedPieces[value2]) value2++;
+                int diff1 = value1 + board[i%3][i/3].value();
+                int diff2 = value2 + board[j%3][j/3].value();
+                if (Math.abs(value1 - value2) <= 1) {
+                    if (Math.abs(diff1 - diff2) <= 1) {
+                        // value1 = value2, board[i] = board[j] ±1
+                        // value1 = value2 + 1, board[i] = board[j] - 1
+                        // value1 = value2 - 1, board[i] = board[j] + 1
+                        boolean isThere1 = false;
+                        boolean isThere2 = false;
+                        for (int yi = 0; yi < 3; yi++) {
+                            if (yi != i / 3) { // check y, same x of i
+                                if (board[i%3][yi].firstPlayer() == firstPlayer) {
+                                    isThere1 = true; break;
+                                }
+                            }
+                            if (yi != i % 3) { // check x
+                                if (board[yi][i/3].firstPlayer() == firstPlayer) {
+                                    isThere1 = true; break;
+                                }
+                            }
+                            if (yi != j / 3) { // check y, same x of j
+                                if (board[j%3][yi].firstPlayer() == firstPlayer) {
+                                    isThere2 = true; break;
+                                }
+                            }
+                            if (yi != j % 3) { // check x
+                                if (board[yi][j/3].firstPlayer() == firstPlayer) {
+                                    isThere2 = true; break;
+                                }
+                            }
+                        }
+                        if (isThere1) return new Move(i%3, i/3, value1);
+                        else if (isThere2) return new Move(j%3, j/3, value2);
+                    }
+                    if (diff1 < diff2) {
+                        x = i % 3;
+                        y = i / 3;
+                        value = value1;
+                    }
+                    else {
+                        x = j % 3;
+                        y = j / 3;
+                        value = value2;
+                    }
+                }
+                else if (value1 < value2) {
+                    x = i % 3; y = i / 3;
+                    value = value1;
+                }
+                else {
+                    x = j % 3; y = j / 3;
+                    value = value2;
+                }
                 return new Move(x, y, value); // check here
             }
             if (playedPosition.size() == 1) {
