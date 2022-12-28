@@ -165,6 +165,9 @@ public class CompetitionAI extends SimpleAI {
                 return new Move(x, y, value); // check here
             }
             if (playedPosition.size() == 1) {
+                // kann so sein - X7 -
+                //             O1 -  -
+                //              - X8 -
                 int i;
                 if (playedPosition.contains(1)) i = 1;
                 else if (playedPosition.contains(3)) i = 3;
@@ -190,7 +193,7 @@ public class CompetitionAI extends SimpleAI {
                     // overlap
                     return (indexOther == 1) ? new Move(x1, y1, minValue) : new Move(x2, y2, minValue);
                 }
-                else {
+                else if (indexNull != 0){
                     return (indexNull == 1) ? new Move(x1, y1, minValue) : new Move(x2, y2, minValue);
                 }
             }
