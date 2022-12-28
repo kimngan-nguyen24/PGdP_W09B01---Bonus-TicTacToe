@@ -164,12 +164,8 @@ public class CompetitionAI extends SimpleAI {
                 while (value <= maxValue && playedPieces[value]) value++;
                 return new Move(x, y, value); // check here
             }
-            /*if (playedPosition.size() == 1) {
-                int i;
-                if (playedPosition.contains(1)) i = 1;
-                else if (playedPosition.contains(3)) i = 3;
-                else if (playedPosition.contains(5)) i = 5;
-                else i = 7;
+            if (playedPosition.size() == 1) {
+                int i = playedPosition.get(0);
                 int j1, j2;
                 switch(i) {
                     case 1:
@@ -194,7 +190,7 @@ public class CompetitionAI extends SimpleAI {
                     return (indexNull == 1) ? new Move(x1, y1, minValue) : new Move(x2, y2, minValue);
                 }
             }
-            else { // playedPosition.size() == 0
+            /*else { // playedPosition.size() == 0
                 int indexNull = 0;
                 if (board[1][0] == null) indexNull = 1;
                 else if (board[1][0].value() < minValue) return new Move(1, 0, minValue);
