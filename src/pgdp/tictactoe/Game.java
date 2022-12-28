@@ -3,12 +3,15 @@ package pgdp.tictactoe;
 import pgdp.tictactoe.ai.CompetitionAI;
 import pgdp.tictactoe.ai.HumanPlayer;
 import pgdp.tictactoe.ai.SimpleAI;
+import pgdp.tictactoe.ai.SimpleAI2;
 
 public class Game {
     private final PenguAI firstPlayer;
     private final PenguAI secondPlayer;
     private PenguAI winner = null;
     private boolean played = false;
+    static int check = 0;
+    static int turn = 0;
 
     public Game(PenguAI first, PenguAI second) {
         firstPlayer = first;
@@ -43,7 +46,7 @@ public class Game {
         int countOfFields = 0;
         PenguAI player; PenguAI otherPlayer;
         boolean[] playedPieces;
-        do {
+        do { turn++;
             if (firstPlayerTurn) {
                 // check if firstPlayer can continue to play
                 player = firstPlayer; otherPlayer = secondPlayer;
@@ -64,10 +67,17 @@ public class Game {
             int x = move.x(); int y = move.y(); int value = move.value();
 
             // check verbotener, falscher oder ungültiger Zug
-            if (x < 0 || x > 8 || y < 0 || y > 8 || value < 0 || value > 8) {winner = otherPlayer; return;}
-            if (playedPieces[value]) {winner = otherPlayer; return;} // Der Player hat diesen Stein schon gespielt.
+            if (x < 0 || x > 8 || y < 0 || y > 8 || value < 0 || value > 8) {
+                System.out.println("P" + (firstPlayerTurn? 1 : 2) + " ungültig " + x + " " + y);
+                winner = otherPlayer; return;
+            }
+            if (playedPieces[value]) {
+                System.out.println("P" + (firstPlayerTurn? 1 : 2) + " ungültig " + x + " " + y);
+                winner = otherPlayer; return;
+            } // Der Player hat diesen Stein schon gespielt.
             if (board[x][y] != null) { // Das Feld ist schon belegt
                 if (board[x][y].firstPlayer() == firstPlayerTurn || board[x][y].value() >= value) {
+                    System.out.println("P" + (firstPlayerTurn? 1 : 2) + " ungültig " + x + " " + y);
                     winner = otherPlayer; return;
                 }
             } // end checking
@@ -75,6 +85,7 @@ public class Game {
             else { // board[x][y] = null
                 countOfFields++;
             }
+            check++;
             board[x][y] = new Field(value, firstPlayerTurn);
             playedPieces[value] = true;
             if (check(board, firstPlayerTurn, x, y)) {
@@ -172,29 +183,31 @@ public class Game {
 
     public static void main(String[] args) {
         PenguAI firstPlayer = new CompetitionAI();
-        PenguAI secondPlayer = new CompetitionAI();
+        PenguAI secondPlayer = new SimpleAI2();
         int win = 0, lose = 0, draw = 0;
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 100; i++) {
+            System.out.println("Game " + i +1);
             Game game = new Game(firstPlayer, secondPlayer);
             game.playGame();
             if (firstPlayer == game.getWinner()) {
                 //System.out.println("Herzlichen Glückwunsch erster Spieler");
                 win++;
             } else if (secondPlayer == game.getWinner()) {
-                //System.out.println("Herzlichen Glückwunsch zweiter Spieler");
+                System.out.println("Failed here");
                 lose++;
             } else {
                 //System.out.println("Unentschieden");
                 draw++;
             }
 
+            System.out.println("Game " + i + 2);
             game = new Game(secondPlayer, firstPlayer);
             game.playGame();
             if (firstPlayer == game.getWinner()) {
                 //System.out.println("Herzlichen Glückwunsch erster Spieler");
                 win++;
             } else if (secondPlayer == game.getWinner()) {
-                //System.out.println("Herzlichen Glückwunsch zweiter Spieler");
+                System.out.println("Failed here");
                 lose++;
             } else {
                 //System.out.println("Unentschieden");
@@ -205,5 +218,6 @@ public class Game {
         System.out.println("Win: " + win);
         System.out.println("Lose: " + lose);
         System.out.println("Draw: " + draw);
+        System.out.println("Gültiger Zug: " + check + "/" + turn);
     }
 }

@@ -27,7 +27,7 @@ public class CompetitionAI extends SimpleAI {
                 maxValue--;
             }
             int otherMaxValue = 8; // otherMaxValue is the biggest stone of other player
-            while (otherMaxValue > 0 && otherPlayedPieces[otherMaxValue]) otherMaxValue--;
+            while (otherMaxValue >= 0 && otherPlayedPieces[otherMaxValue]) otherMaxValue--;
 
             List<Integer> playedPosition = new ArrayList<>();
             List<Integer> otherPlayedPosition = new ArrayList<>();
@@ -50,6 +50,25 @@ public class CompetitionAI extends SimpleAI {
                         sum2 += board[x][y].value();
                     }
                 }
+            }
+
+            if (otherMaxValue == -1) { // otherPlayer hat keinen Stein mehr
+                int x0 = 0, y0 = 0, value = maxValue;
+                for (int y = 0; y < 3; y++) {
+                    for (int x = 0; x < 3; x++) {
+                        if (board[x][y] == null) {
+                            return new Move(x, y, minValue);
+                        }
+                        else if (board[x][y].firstPlayer() != firstPlayer) {
+                            if (board[x][y].value() < value) {
+                                x0 = x; y0 = y;
+                                value = board[x][y].value() + 1;
+                            }
+                        }
+                    }
+                }
+                System.out.println(x0 + " " + y0);
+                return new Move(x0, y0, minValue);
             }
 
             if (playedPosition.size() >= 2) {
@@ -127,22 +146,6 @@ public class CompetitionAI extends SimpleAI {
                         }
                     }
                 }
-            }
-            if (otherMaxValue == -1) { // otherPlayer hat keinen Stein mehr
-                int x0 = 0, y0 = 0, value = maxValue;
-                for (int y = 0; y < 3; y++) {
-                    for (int x = 0; x < 3; x++) {
-                        if (board[x][y] == null) return new Move(x, y, minValue);
-                        else if (board[x][y].firstPlayer() != firstPlayer) {
-                            if (board[x][y].value() < value) {
-                                x0 = x; y0 = y;
-                                value = board[x][y].value() + 1;
-                            }
-                        }
-                    }
-                }
-                while (value <= maxValue && playedPieces[value]) value++;
-                return new Move(x0, y0, value);
             }
             if (needToBlock) return move;
             if (otherMaxValue >= maxValue && otherPlayedPosition.size() >= 2) {
