@@ -190,7 +190,7 @@ public class CompetitionAI extends SimpleAI {
                     return (indexNull == 1) ? new Move(x1, y1, minValue) : new Move(x2, y2, minValue);
                 }
             }
-            /*else { // playedPosition.size() == 0
+            else if (playedPosition.size() == 0){ // playedPosition.size() == 0
                 int indexNull = 0;
                 if (board[1][0] == null) indexNull = 1;
                 else if (board[1][0].value() < minValue) return new Move(1, 0, minValue);
@@ -205,7 +205,7 @@ public class CompetitionAI extends SimpleAI {
                 else if (board[1][2].value() < minValue) return new Move(1, 2, minValue);
 
                 return new Move(indexNull%3, indexNull/3, minValue);
-            }*/
+            }
         }
         return move;
     }
