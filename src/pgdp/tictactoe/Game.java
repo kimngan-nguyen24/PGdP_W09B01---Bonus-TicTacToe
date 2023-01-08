@@ -3,7 +3,6 @@ package pgdp.tictactoe;
 import pgdp.tictactoe.ai.CompetitionAI;
 import pgdp.tictactoe.ai.HumanPlayer;
 import pgdp.tictactoe.ai.SimpleAI;
-import pgdp.tictactoe.ai.SimpleAI2;
 
 public class Game {
     private Field[][] board;
@@ -177,7 +176,7 @@ public class Game {
     }
 
     public static void main(String[] args) {
-        PenguAI firstPlayer = new HumanPlayer();
+        PenguAI firstPlayer = new CompetitionAI();
         PenguAI secondPlayer = new SimpleAI();
         int win = 0, lose = 0, draw = 0;
         for (int i = 0; i < 1; i++) {
