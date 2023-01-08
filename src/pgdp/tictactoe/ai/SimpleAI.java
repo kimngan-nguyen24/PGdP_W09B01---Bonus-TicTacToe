@@ -55,7 +55,7 @@ public class SimpleAI extends PenguAI {
         for (Integer i : movePositions) {
             int x = i % 3, y = i / 3;
             if (board[x][y] == null) { // Das Feld ist frei, value ist nicht notwendig
-                return new Move(x, y, minValue);
+                return new Move(x, y, maxValue);
             }
             else {
                 if (board[x][y].value() < maxValue) return new Move(x, y, maxValue);
